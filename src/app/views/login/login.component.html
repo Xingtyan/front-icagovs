@@ -1,0 +1,11 @@
+<div class="container py-5" style="max-width:420px">
+  <h3 class="mb-3">Iniciar sesión</h3>
+  <form (ngSubmit)="submit()" #f="ngForm">
+    <input class="form-control mb-2" name="email" [(ngModel)]="email" placeholder="Email o usuario" required>
+    <input class="form-control mb-3" name="password" [(ngModel)]="password" type="password" placeholder="Contraseña" required>
+    <button class="btn btn-primary w-100" [disabled]="f.invalid || loading">
+      {{ loading ? 'Entrando...' : 'Entrar' }}
+    </button>
+    <div class="text-danger mt-2" *ngIf="error">{{error}}</div>
+  </form>
+</div>

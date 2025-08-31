@@ -1,0 +1,230 @@
+<c-card class="mb-3">
+  <c-card-header class="d-flex gap-2 align-items-center">
+    <input cFormControl class="w-auto" style="min-width:260px" [(ngModel)]="search" (keyup.enter)="onSearch()"
+      placeholder="Buscar (código, CIS)">
+    <button cButton color="secondary" (click)="onSearch()">Buscar</button>
+    <button cButton color="primary" class="ms-auto" (click)="openCreate()">Nuevo</button>
+  </c-card-header>
+
+  <c-card-body class="p-0">
+    <div class="table-responsive">
+      <table class="table table-striped table-hover mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Código</th>
+            <th>CIS</th>
+            <th>Importador</th>
+            <th>Exportador</th>
+            <th style="width:160px">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of rows">
+            <td>{{ r.id }}</td>
+            <td>{{ r.codigo }}</td>
+            <td>{{ r.Numero_Cis }}</td>
+            <td>{{ r.importador }}</td>
+            <td>{{ r.exportador }}</td>
+            <td>
+              <button cButton size="sm" color="primary" variant="outline" class="me-2"
+                (click)="openEdit(r)">Editar</button>
+              <button cButton color="danger" (click)="confirmDelete(r, $event)"
+                [disabled]="(r.productos?.length ?? 0) > 0">
+                Eliminar
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="!rows.length && !loading">
+            <td colspan="6" class="text-center py-4 text-body-secondary">
+              Sin resultados
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- <div class="p-3 d-flex justify-content-center" *ngIf="pages > 1">
+      <c-pagination aria-label="Paginación" [activePage]="page" [pages]="pages" (activePageChange)="onPage($event)">
+      </c-pagination>
+    </div> -->
+
+    <!-- Paginación simple Bootstrap -->
+    <!-- <nav class="p-3 d-flex justify-content-center" *ngIf="pages > 1">
+      <ul class="pagination mb-0">
+        <li class="page-item" [class.disabled]="page <= 1">
+          <button class="page-link" (click)="onPage(page - 1)" [disabled]="page <= 1">Anterior</button>
+        </li>
+
+        <li class="page-item" *ngFor="let p of pageNumbers()" [class.active]="p === page">
+          <button class="page-link" (click)="onPage(p)">{{ p }}</button>
+        </li>
+
+        <li class="page-item" [class.disabled]="page >= pages">
+          <button class="page-link" (click)="onPage(page + 1)" [disabled]="page >= pages">Siguiente</button>
+        </li>
+      </ul>
+    </nav> -->
+    <nav class="p-3 d-flex justify-content-center" *ngIf="pages > 1">
+      <ul class="pagination mb-0">
+        <li class="page-item" [class.disabled]="page <= 1">
+          <button class="page-link" (click)="onPage(page - 1)" [disabled]="page <= 1">Anterior</button>
+        </li>
+
+        <li class="page-item" *ngFor="let p of pageItems()" [class.active]="p === page" [class.disabled]="p === '…'">
+          <span class="page-link" *ngIf="p === '…'">…</span>
+          <button class="page-link" *ngIf="p !== '…'" (click)="onPage(+p)">
+            {{ p }}
+          </button>
+        </li>
+
+        <li class="page-item" [class.disabled]="page >= pages">
+          <button class="page-link" (click)="onPage(page + 1)" [disabled]="page >= pages">Siguiente</button>
+        </li>
+      </ul>
+    </nav>
+
+  </c-card-body>
+</c-card>
+
+<c-modal [visible]="showModal" (visibleChange)="onModalVisibleChange($event)" alignment="center" size="xl"
+  [scrollable]="true">
+  <c-modal-header>
+    <h5 cModalTitle>{{ editing ? 'Editar certificado' : 'Nuevo certificado' }}</h5>
+    <button cButtonClose (click)="showModal=false"></button>
+  </c-modal-header>
+
+  <c-modal-body>
+    <!-- ====== CERTIFICADO ====== -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-3"><label class="form-label">Código *</label><input cFormControl [(ngModel)]="form.codigo"
+          required></div>
+      <div class="col-md-3"><label class="form-label">CIS</label><input cFormControl [(ngModel)]="form.Numero_Cis">
+      </div>
+      <div class="col-md-3"><label class="form-label">Fecha precuarentena</label><input cFormControl type="date"
+          [(ngModel)]="form.fecha_precuarentena"></div>
+      <div class="col-md-3"><label class="form-label">Dictamen</label><input cFormControl [(ngModel)]="form.dictamen">
+      </div>
+
+      <div class="col-md-4"><label class="form-label">Puerto de salida</label><input cFormControl
+          [(ngModel)]="form.puerto_salida"></div>
+      <div class="col-md-4"><label class="form-label">País destino</label><input cFormControl
+          [(ngModel)]="form.pais_destino"></div>
+      <div class="col-md-4"><label class="form-label">Ruta de viaje</label><input cFormControl
+          [(ngModel)]="form.ruta_viaje"></div>
+
+      <div class="col-md-3"><label class="form-label">Procedencia</label><input cFormControl
+          [(ngModel)]="form.procedencia"></div>
+      <div class="col-md-3"><label class="form-label">Vía</label><input cFormControl [(ngModel)]="form.via"></div>
+
+      <div class="col-md-6"><label class="form-label">Importador</label><input cFormControl
+          [(ngModel)]="form.importador">
+      </div>
+      <div class="col-md-6"><label class="form-label">Dirección importador</label><input cFormControl
+          [(ngModel)]="form.direccion_importador"></div>
+
+      <div class="col-md-6"><label class="form-label">Exportador</label><input cFormControl
+          [(ngModel)]="form.exportador">
+      </div>
+      <div class="col-md-6"><label class="form-label">Dirección exportador</label><input cFormControl
+          [(ngModel)]="form.direccion_exportador"></div>
+
+      <div class="col-md-4"><label class="form-label">Nombre predio</label><input cFormControl
+          [(ngModel)]="form.nombre_predio"></div>
+      <div class="col-md-4"><label class="form-label">Municipio</label><input cFormControl [(ngModel)]="form.municipio">
+      </div>
+      <div class="col-md-4"><label class="form-label">Vereda</label><input cFormControl [(ngModel)]="form.vereda"></div>
+
+      <div class="col-12">
+        <label class="form-label">Observaciones</label>
+        <textarea cFormControl rows="3" [(ngModel)]="form.observaciones"></textarea>
+      </div>
+    </div>
+
+    <!-- ====== CANINOS (productos) ====== -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="mb-0">Caninos</h6>
+      <button cButton size="sm" color="secondary" (click)="addDog()">Agregar canino</button>
+    </div>
+
+    <div *ngFor="let d of form.productos; let i = index" class="border rounded p-3 mb-2">
+      <div class="row g-2">
+        <div class="col-12 col-md-2">
+          <label class="form-label">Cantidad</label>
+          <input cFormControl type="number" min="1" [(ngModel)]="d.cantidad">
+        </div>
+
+        <div class="col-12 col-md-2">
+          <label class="form-label">Unidad</label>
+          <select cSelect [(ngModel)]="d.unidad">
+            <option>UNIDADES/UNITS</option>
+            <option>OTRA</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-3">
+          <label class="form-label">Producto</label>
+          <input cFormControl [(ngModel)]="d.producto" placeholder="PERROS COMPAÑÍA">
+        </div>
+
+        <div class="col-12 col-md-3">
+          <label class="form-label">Presentación</label>
+          <input cFormControl [(ngModel)]="d.presentacion" placeholder="SOL / MERLA ...">
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label class="form-label">Code/Chip *</label>
+          <input cFormControl [(ngModel)]="d.code_chip" required>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label class="form-label">Raza</label>
+          <input cFormControl [(ngModel)]="d.raza" placeholder="BULLDOG FRANCES">
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label class="form-label">Empaque</label>
+          <select cSelect [(ngModel)]="d.empaque">
+            <option>No Aplica</option>
+            <option>GUACALES</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-3">
+          <label class="form-label">Sexo</label>
+          <select cSelect [(ngModel)]="d.sexo">
+            <option value="Machos">Machos</option>
+            <option value="Hembras">Hembras</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-3">
+          <label class="form-label">Edad</label>
+          <input cFormControl [(ngModel)]="d.edad" placeholder="4 MESES / 1 AÑO">
+        </div>
+
+        <div class="col-12 col-md-3">
+          <label class="form-label">Valor FOB</label>
+          <input cFormControl type="number" step="0.01" [(ngModel)]="d.valor_fob">
+        </div>
+
+        <div class="col-12 col-md-3 d-flex align-items-end justify-content-end">
+          <button cButton color="danger" variant="outline" (click)="removeDog(i)">Quitar</button>
+        </div>
+      </div>
+    </div>
+  </c-modal-body>
+
+  <c-modal-footer>
+    <button cButton color="light" (click)="showModal=false">Cancelar</button>
+    <button cButton color="primary" [disabled]="saving" (click)="save()">
+      {{ saving ? 'Guardando...' : 'Guardar' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+
+<!-- Spinner de carga -->
+<div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+  style="background:rgba(255,255,255,.35); z-index:1050" *ngIf="loading">
+  <c-spinner></c-spinner>
+</div>
