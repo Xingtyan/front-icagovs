@@ -6,20 +6,29 @@ import { catchError, throwError } from 'rxjs';
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const token = localStorage.getItem('jwt');
 
-  // no agregamos a login
   const isAuthCall = req.url.includes('/auth/login');
+  const isPublicCertificate = req.url.includes('/auth/certificates/'); // Rutas públicas de certificados
+  const isRegisterCall = req.url.includes('/auth/register'); // Si register es público
 
-  if (token && !isAuthCall) {
+  // Solo agregar token si existe y NO es una llamada pública
+  if (token && !isAuthCall && !isPublicCertificate && !isRegisterCall) {
     req = req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
   }
+
 
   return next(req).pipe(
     catchError(err => {
       if (err.status === 401) {
-        // si expira o es inválido, saca al login
-        localStorage.removeItem('jwt');
-        const router = inject(Router);
-        router.navigateByUrl('/login');
+        // Solo redirigir al login si es una ruta protegida
+        // No redirigir para errores 401 en rutas públicas
+        const isPublicRequest = req.url.includes('/auth/certificates/') ||
+          req.url.includes('/auth/register');
+
+        if (!isPublicRequest) {
+          localStorage.removeItem('jwt');
+          const router = inject(Router);
+          router.navigateByUrl('/login');
+        }
       }
       return throwError(() => err);
     })

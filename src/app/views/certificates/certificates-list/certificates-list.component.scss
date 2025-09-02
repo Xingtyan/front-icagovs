@@ -1,0 +1,8 @@
+/* en tu styles.css global */
+.table-sticky th.sticky-col,
+.table-sticky td.sticky-col {
+  position: sticky;
+  right: 0;
+  background: #fff; /* mismo color que la tabla para que no se vea raro */
+  z-index: 10;      /* asegura que quede por encima al hacer scroll */
+}

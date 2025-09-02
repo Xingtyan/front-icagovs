@@ -1,0 +1,35 @@
+<!-- certificate-search.component.html -->
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Consulta de Certificados</h4>
+                    <button class="btn btn-outline-primary btn-sm" (click)="irALogin()">
+                        <i class="bi bi-box-arrow-in-right"></i> Acceso Admin
+                    </button>
+                </div>
+                <div class="card-body">
+                    <form (ngSubmit)="buscarCertificado()">
+                        <div class="mb-3">
+                            <label for="codigoCertificado" class="form-label">Número de Certificado</label>
+                            <input type="text" class="form-control" id="codigoCertificado" [(ngModel)]="codigo"
+                                name="codigo" placeholder="Ingrese el código del certificado" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" [disabled]="isLoading">
+                            @if (isLoading) {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            Consultando...
+                            } @else {
+                            Consultar Certificado
+                            }
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer text-muted">
+                    <small>Los certificados se abrirán en una nueva pestaña</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

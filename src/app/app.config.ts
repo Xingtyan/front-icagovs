@@ -14,6 +14,7 @@ import {
 import { DropdownModule, SidebarModule } from '@coreui/angular';
 import { IconSetService } from '@coreui/icons-angular';
 import { routes } from './app.routes';
+import { DatePipe, DecimalPipe } from '@angular/common';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,6 +30,8 @@ export const appConfig: ApplicationConfig = {
       withViewTransitions(),
       withHashLocation()
     ),
+    DatePipe,
+    DecimalPipe,
     provideHttpClient(withInterceptorsFromDi(),withInterceptors([jwtInterceptor])),
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,

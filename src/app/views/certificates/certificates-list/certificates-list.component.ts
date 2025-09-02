@@ -8,22 +8,13 @@ import {
   SpinnerModule, FormModule
 } from '@coreui/angular';
 
-import { CertificatesService, Certificate } from '../../../services/certificates.service';
-
-type Sexo = 'Machos' | 'Hembras';
-
-export interface DogProduct {
-  cantidad?: number;
-  unidad?: string;
-  producto?: string;
-  presentacion?: string;
-  code_chip?: string;   // nombre EXACTO de la BD
-  raza?: string;
-  empaque?: string;
-  sexo?: Sexo;
-  edad?: string;        // texto: '4 MESES', '1 AÑO', etc.
-  valor_fob?: number;
-}
+// Importar interfaces SEPARADAS
+import { 
+  CertificatesService, 
+  Certificate,           // ← Interface MINIMALISTA para lista
+  CertificateDetail,    // ← Interface COMPLETA para formulario
+  DogProduct 
+} from '../../../services/certificates.service';
 
 @Component({
   selector: 'app-certificates-list',
@@ -41,46 +32,59 @@ export class CertificatesListComponent implements OnInit {
   saving = false;
 
   page = 1; 
-  per_page = 10; 
+  per_page = 20; 
   total = 0;
   rows: Certificate[] = [];
+
+  // Nuevas propiedades para el formulario de fechas
+  dateFilter = {
+    start: '',
+    end: ''
+  };
 
   private win = 2;
 
   showModal = false;
   editing: Certificate | null = null;
 
-  // Importante: añadimos productos al formulario
-  form: Certificate & { productos?: DogProduct[] } = { codigo: '', productos: [] };
+  // form usa la interface COMPLETA porque necesita todos los campos
+  form: CertificateDetail & { productos?: DogProduct[] } = { 
+    codigo: '', 
+    productos: [] 
+  };
 
-  constructor(private api: CertificatesService,private dlg: DialogService) { }
+  constructor(
+    private api: CertificatesService,
+    private dlg: DialogService
+  ) { }
+
   ngOnInit() { this.load(); }
 
   get pages(): number { return Math.max(1, Math.ceil(this.total / this.per_page)); }
-  // pageNumbers(): number[] { return Array.from({ length: this.pages }, (_, i) => i + 1); }
 
   pageItems(): (number | '…')[] {
-  const last = this.pages;
-  const cur  = this.page;
-  const w    = this.win;
+    const last = this.pages;
+    const cur  = this.page;
+    const w    = this.win;
 
-  const s = new Set<number>();
-  s.add(1);
-  for (let p = cur - w; p <= cur + w; p++) if (p > 1 && p < last) s.add(p);
-  if (last > 1) s.add(last);
+    const s = new Set<number>();
+    s.add(1);
+    for (let p = cur - w; p <= cur + w; p++) if (p > 1 && p < last) s.add(p);
+    if (last > 1) s.add(last);
 
-  const arr = Array.from(s).sort((a, b) => a - b);
-  const out: (number | '…')[] = [];
-  for (let i = 0; i < arr.length; i++) {
-    out.push(arr[i]);
-    if (i < arr.length - 1 && arr[i + 1] - arr[i] > 1) out.push('…');
+    const arr = Array.from(s).sort((a, b) => a - b);
+    const out: (number | '…')[] = [];
+    for (let i = 0; i < arr.length; i++) {
+      out.push(arr[i]);
+      if (i < arr.length - 1 && arr[i + 1] - arr[i] > 1) out.push('…');
+    }
+    return out;
   }
-  return out;
-}
 
   load() {
     this.loading = true;
-    this.api.list(this.search, this.page, this.per_page).subscribe({
+    // list() devuelve Certificate[] (minimalista)
+    this.api.list(this.search, this.dateFilter.start, this.dateFilter.end, this.page, this.per_page).subscribe({
       next: res => {
         this.rows = res.data ?? [];
         this.total = res.total ?? this.rows.length;
@@ -90,10 +94,26 @@ export class CertificatesListComponent implements OnInit {
     });
   }
 
-  onPage(p: any) { this.page = Math.min(Math.max(1, Number(p) || 1), this.pages); this.load(); }
-  onSearch() { this.page = 1; this.load(); }
+  onPage(p: any) { 
+    this.page = Math.min(Math.max(1, Number(p) || 1), this.pages); 
+    this.load(); 
+  }
 
-  // ------- Productos (caninos) -------
+  onSearch() { 
+    this.page = 1; 
+    this.load(); 
+  }
+  
+  onDateFilter() {
+    this.page = 1;
+    this.load();
+  }
+
+  clearDateFilter() {
+    this.dateFilter = { start: '', end: '' };
+    this.onDateFilter();
+  }
+
   private newDog(): DogProduct {
     return {
       cantidad: 1,
@@ -108,12 +128,18 @@ export class CertificatesListComponent implements OnInit {
       valor_fob: 0
     };
   }
-  addDog() { (this.form.productos ||= []).push(this.newDog()); }
-  removeDog(i: number) { this.form.productos?.splice(i, 1); }
 
-  // ------- Modal -------
+  addDog() { 
+    (this.form.productos ||= []).push(this.newDog()); 
+  }
+
+  removeDog(i: number) { 
+    this.form.productos?.splice(i, 1); 
+  }
+
   openCreate() {
     this.editing = null;
+    // Inicializar con TODOS los campos de CertificateDetail
     this.form = {
       codigo: '',
       Numero_Cis: '',
@@ -138,30 +164,40 @@ export class CertificatesListComponent implements OnInit {
   }
 
   openEdit(row: Certificate) {
-    if (!row.id) { alert('Registro sin ID'); return; }
+    if (!row.id) { 
+      this.dlg.error('Registro sin ID'); 
+      return; 
+    }
+    
     this.editing = row;
     this.saving = true;
 
+    // get() devuelve CertificateDetail (completo)
     this.api.get(row.id).subscribe({
-      next: ({ data: full }) => {
+      next: (res) => {
         this.form = {
-          ...full,
-          productos: (full.productos ?? []).map(p => ({ ...p }))
+          ...res.data,
+          productos: (res.data?.productos ?? []).map(p => ({ ...p }))
         };
         this.saving = false;
         this.showModal = true;
       },
-      error: _ => { this.saving = false; alert('No se pudo cargar el certificado'); }
+      error: (error) => { 
+        this.saving = false; 
+        this.dlg.error('No se pudo cargar el certificado'); 
+      }
     });
   }
 
-
   save() {
-    if (!this.form.codigo?.trim()) { this.dlg.error('Código es obligatorio'); return; }
+    if (!this.form.codigo?.trim()) { 
+      this.dlg.error('Código es obligatorio'); 
+      return; 
+    }
 
     this.saving = true;
     const req = this.editing?.id
-      ? this.api.update(this.editing.id!, this.form)
+      ? this.api.update(this.editing.id, this.form)
       : this.api.create(this.form);
 
     req.subscribe({
@@ -179,9 +215,11 @@ export class CertificatesListComponent implements OnInit {
     });
   }
 
-  onModalVisibleChange(v: any) { this.showModal = !!v; }
+  onModalVisibleChange(v: any) { 
+    this.showModal = !!v; 
+  }
 
-async confirmDelete(row: Certificate, ev?: Event) {
+  async confirmDelete(row: Certificate, ev?: Event) {
     const ok = await this.dlg.confirmDelete('el certificado');
     if (!ok) return;
 
@@ -195,5 +233,5 @@ async confirmDelete(row: Certificate, ev?: Event) {
         this.dlg.error(msg);
       }
     });
-}
+  }
 }

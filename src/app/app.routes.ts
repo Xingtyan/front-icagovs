@@ -1,87 +1,70 @@
+// app.routes.ts
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
+import { CertificateSearchComponent } from './views/certificates/certificate-search/certificate-search.component';
 
 export const routes: Routes = [
-  // Login (público). Elige UNO solo. Aquí lo cargamos lazy desde tu carpeta "views/login"
+  // ==================== RUTAS PÚBLICAS ====================
+  // Estas rutas NO están protegidas y NO usan el layout principal
   {
     path: 'login',
     loadComponent: () =>
       import('./views/login/login.component').then(m => m.LoginComponent),
     data: { title: 'Login' }
   },
+  {
+    path: 'consultar-certificado',
+    component: CertificateSearchComponent,
+    data: { title: 'Consultar Certificado' }
+  },
 
-  // Todo lo demás cuelga del layout (protegido)
+  // ==================== RUTA PRINCIPAL (PÚBLICA) ====================
+  {
+    path: '',
+    component: CertificateSearchComponent, // ← Página de búsqueda como inicio
+    data: { title: 'Inicio - Consulta de Certificados' }
+  },
+
+  // ==================== RUTAS PROTEGIDAS ====================
+  // Estas rutas SÍ están protegidas y SÍ usan el layout principal
   {
     path: '',
     loadComponent: () => import('./layout').then(m => m.DefaultLayoutComponent),
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard], // ← Protección con guard
     children: [
-      // Certificates dentro del layout
+      // Certificados (admin)
       {
         path: 'certificates',
         loadComponent: () =>
           import('./views/certificates/certificates-list/certificates-list.component')
             .then(m => m.CertificatesListComponent),
-        data: { title: 'Certificados' }
+        data: { title: 'Gestión de Certificados' }
       },
-
-      // (Opcional) el resto del menú de CoreUI que ya traía la plantilla:
+      
+      // Dashboard
       {
         path: 'dashboard',
-        loadChildren: () => import('./views/dashboard/routes').then(m => m.routes)
-      },
-      {
-        path: 'theme',
-        loadChildren: () => import('./views/theme/routes').then(m => m.routes)
-      },
-      {
-        path: 'base',
-        loadChildren: () => import('./views/base/routes').then(m => m.routes)
-      },
-      {
-        path: 'buttons',
-        loadChildren: () => import('./views/buttons/routes').then(m => m.routes)
-      },
-      {
-        path: 'forms',
-        loadChildren: () => import('./views/forms/routes').then(m => m.routes)
-      },
-      {
-        path: 'icons',
-        loadChildren: () => import('./views/icons/routes').then(m => m.routes)
-      },
-      {
-        path: 'notifications',
-        loadChildren: () => import('./views/notifications/routes').then(m => m.routes)
-      },
-      {
-        path: 'widgets',
-        loadChildren: () => import('./views/widgets/routes').then(m => m.routes)
-      },
-      {
-        path: 'charts',
-        loadChildren: () => import('./views/charts/routes').then(m => m.routes)
-      },
-      {
-        path: 'pages',
-        loadChildren: () => import('./views/pages/routes').then(m => m.routes)
+        loadChildren: () => import('./views/dashboard/routes').then(m => m.routes),
+        data: { title: 'Dashboard' }
       },
 
-      // Home dentro del layout → manda a certificates
-      { path: '', pathMatch: 'full', redirectTo: 'certificates' }
+      // Redirección por defecto dentro del área protegida
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' }
     ]
   },
 
-  // 404/500 (opcional)
+  // ==================== RUTAS DE ERROR ====================
   {
     path: '404',
-    loadComponent: () => import('./views/pages/page404/page404.component').then(m => m.Page404Component)
+    loadComponent: () => import('./views/pages/page404/page404.component').then(m => m.Page404Component),
+    data: { title: 'Página no encontrada' }
   },
   {
     path: '500',
-    loadComponent: () => import('./views/pages/page500/page500.component').then(m => m.Page500Component)
+    loadComponent: () => import('./views/pages/page500/page500.component').then(m => m.Page500Component),
+    data: { title: 'Error del servidor' }
   },
 
-  // Comodín final
-  { path: '**', redirectTo: 'certificates' }
+  // ==================== RUTA COMODÍN ====================
+  { path: '**', redirectTo: '404' }
 ];
