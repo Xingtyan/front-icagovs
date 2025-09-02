@@ -19,6 +19,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes,
+      withHashLocation(),
       withRouterConfig({
         onSameUrlNavigation: 'reload'
       }),
@@ -28,7 +29,6 @@ export const appConfig: ApplicationConfig = {
       }),
       withEnabledBlockingInitialNavigation(),
       withViewTransitions(),
-      withHashLocation()
     ),
     DatePipe,
     DecimalPipe,

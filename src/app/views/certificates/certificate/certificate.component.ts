@@ -1,106 +1,73 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { Component, ViewEncapsulation } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 
 // Importar la interface COMPLETA
 import {
   CertificatesService,
-  CertificateDetail,    // ← Interface COMPLETA
+  CertificateDetail,
+  DogProduct,   // ← Interface COMPLETA
   ApiResponse
 } from '../../../services/certificates.service';
 
 @Component({
   selector: 'app-certificate',
   templateUrl: './certificate.component.html',
-  standalone: true,
+  styleUrls: ['./certificate.component.scss'],
   imports: [CommonModule],
-  providers: [DatePipe, DecimalPipe]
+  encapsulation: ViewEncapsulation.ShadowDom  // 🔑
 })
-export class CertificateComponent implements OnInit {
-  // Usar la interface COMPLETA
-  certificado: CertificateDetail = {};
-  productos: any[] = [];
-  mensaje: string | null = null;
-  isLoading: boolean = true;
-  resultado: any = null;
+export class CertificateComponent {
+  // @Input() certificado!: CertificateDetail;
 
-  constructor(
+  constructor(private datePipe: DatePipe,
     private route: ActivatedRoute,
-    private certificateService: CertificatesService,
-    private datePipe: DatePipe,
-    private decimalPipe: DecimalPipe
-  ) { }
+    private certificatesService: CertificatesService,
+    private titleService: Title) { }
 
-  ngOnInit(): void {
-    this.fixBaseHref();
-    const codigo = this.route.snapshot.paramMap.get('id');
+  certificado!: CertificateDetail;
 
-    if (codigo) {
-      // getCertificateByCode() devuelve CertificateDetail (completo)
-      this.certificateService.getCertificateByCode(codigo).subscribe({
-        next: (response: ApiResponse<CertificateDetail>) => {
-          this.certificado = response.data || {};
-          this.productos = this.certificado.productos || [];
-          this.resultado = response;
-          this.isLoading = false;
-        },
-        error: (error) => {
-          this.mensaje = error.status === 404
-            ? `El certificado con número '${codigo}' no existe.`
-            : 'Error al cargar el certificado.';
-          this.isLoading = false;
-        }
-      });
-    } else {
-      this.mensaje = "No se proporcionó un número de certificado.";
-      this.isLoading = false;
-    }
+  ngOnInit() {
+    this.titleService.setTitle('Certificado de Inspeccion Sanitaria');
+    this.route.paramMap.subscribe(params => {
+      const codigo = params.get('codigo');
+      if (codigo) {
+        this.certificatesService.getCertificateByCode(codigo).subscribe(resp => {
+          this.certificado = resp.data!;
+        });
+      }
+    });
   }
-  
-    private fixBaseHref(): void {
-    // Corregir el base href para que los recursos se carguen correctamente
-    const baseElement = document.querySelector('base');
-    if (baseElement) {
-      baseElement.setAttribute('href', '/');
-    } else {
-      const base = document.createElement('base');
-      base.setAttribute('href', '/');
-      document.head.appendChild(base);
-    }
-  }
-
-  // SOLUCIÓN: Método para obtener keys de un objeto
-  getObjectKeys(obj: any): string[] {
-    return obj ? Object.keys(obj) : [];
-  }
-
-  // SOLUCIÓN: Método para verificar si un objeto tiene propiedades
-  hasObjectProperties(obj: any): boolean {
-    return obj ? Object.keys(obj).length > 0 : false;
-  }
-
-  // SOLUCIÓN: Añadir métodos faltantes
   formatDate(date: string | null | undefined): string {
-    if (!date) return 'N/A';
-    return this.datePipe.transform(date, 'shortDate') || 'N/A';
+    if (!date) return '';
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+    try {
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) return '';
+      const year = dateObj.getFullYear();
+      const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+      const day = dateObj.getDate().toString().padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      return '';
+    }
   }
 
-  formatNumber(value: string | number | null | undefined): string {
-    if (value === null || value === undefined || value === '') return 'N/A';
+  formatNumberLikePHP(value: string | number | null | undefined): string {
+    if (value === null || value === undefined || value === '') return '';
     const num = typeof value === 'string' ? parseFloat(value) : value;
-    return this.decimalPipe.transform(num, '1.2-2') || 'N/A';
+    if (isNaN(num)) return '';
+    return Math.trunc(num).toString();
   }
 
-  recargarPagina(): void {
-    window.location.reload();
-  }
-
-  imprimirCertificado(): void {
-    window.print();
-  }
-
-  // SOLUCIÓN: Getter para evitar el optional chaining warning
-  get numeroCertificado(): string {
-    return this.certificado.Numero_Cis || this.certificado.codigo || 'No encontrado';
+  formatPresentacion(producto: DogProduct): string {
+    let presentacion = producto.presentacion || '';
+    if (producto.code_chip) {
+      presentacion += ' - <span style="color: blue; text-decoration: underline;">' + producto.code_chip + '</span>';
+    }
+    return presentacion || '';
   }
 }

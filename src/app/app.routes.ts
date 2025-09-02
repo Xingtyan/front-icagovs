@@ -2,6 +2,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
 import { CertificateSearchComponent } from './views/certificates/certificate-search/certificate-search.component';
+import { CertificateComponent } from './views/certificates/certificate/certificate.component';
 
 export const routes: Routes = [
   // ==================== RUTAS PÚBLICAS ====================
@@ -17,6 +18,8 @@ export const routes: Routes = [
     component: CertificateSearchComponent,
     data: { title: 'Consultar Certificado' }
   },
+  { path: 'certificado/:codigo', component: CertificateComponent },
+  // { path: 'public/certificado/:codigo', component: CertificateComponent },
 
   // ==================== RUTA PRINCIPAL (PÚBLICA) ====================
   {

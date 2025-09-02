@@ -1,118 +1,212 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificado {{ numeroCertificado }}</title>
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #fff; }
-        .container { max-width: 950px; margin: 0 auto; background-color: white; padding: 20px; }
-        .header-image { width: 100%; height: auto; margin-bottom: 20px; }
-        .text-center { text-align: center; }
-        .debug { background: #f0f8ff; padding: 10px; margin: 10px 0; border: 1px solid #ccc; }
-        table { width: 100%; margin-bottom: 1rem; border-collapse: collapse; }
-        th, td { padding: 0.75rem; border: 1px solid #dee2e6; }
-        th { background-color: #f8f9fa; font-weight: bold; }
-    </style> -->
-</head>
-<body>
-    <div class="container">
+<div class="certificate-wrapper">
+    <div class="container" style="width: 950px;">
 
-        <!-- Botones -->
-        <div class="text-end mb-3 no-print">
-            <button class="btn btn-primary btn-sm" (click)="imprimirCertificado()">🖨️ Imprimir</button>
-            <button class="btn btn-secondary btn-sm ms-2" (click)="recargarPagina()">🔄 Actualizar</button>
+        <!-- Imagen de encabezado -->
+        <img src="assets/img/fon_cabezoteimg.jpg" alt="SISPAPICA-IMG-HEADER" class="header-image" />
+
+        <!-- Título -->
+        <h5 class="text-center" style="font-size:15px !important;font-weight:bold;">
+            CERTIFICADO DE INSPECCIÓN SANITARIA DE ANIMALES <br />
+            PRODUCTOS DE ORIGEN ANIMAL Y BIOLÓGICOS
+        </h5>
+
+        <!-- Contenido -->
+        <div id="divInfoCert">
+            <table class="table table-borderless">
+                <tbody>
+                    <!-- Encabezado Puerto / Número -->
+                    <tr>
+                        <td>
+                            <table
+                                style="vertical-align: middle; padding: 8px; line-height: 1.4; vertical-align: top; border-top: 1px solid #ddd;">
+                                <tbody>
+                                    <tr style="width: 100%; display: table; table-layout: fixed;">
+                                        <th scope="row" style="padding: 10px; width: 120px;">
+                                            PUERTO SALIDA:
+                                        </th>
+                                        <td scope="row" style="padding: 10px; width: 300px;">
+                                            {{ certificado?.puerto_salida }}
+                                        </td>
+                                        <td style="padding: 10px; width: 10%;">&nbsp;</td>
+                                        <th scope="row"
+                                            style="padding: 10px; width: 10%; word-break: keep-all; word-wrap: normal;">
+                                            No.
+                                        </th>
+                                        <td style="padding: 10px; width: 30%; word-break: keep-all; word-wrap: normal;">
+                                            {{ certificado?.Numero_Cis }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Título Productos -->
+                    <tr>
+                        <th class="text-center"><span>PRODUCTOS</span></th>
+                    </tr>
+
+                    <!-- Tabla Productos -->
+                    <tr>
+                        <td>
+                            <div>
+                                <table cellspacing="0"
+                                    style="width: 100%; border-top: 1px solid #ddd; border-left: 1px solid #4a4a4a; border-bottom: 1px solid #4a4a4a; border-right: 1px solid #4a4a4a;">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="col" style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                Cantidad
+                                            </th>
+                                            <th scope="col" style="border-bottom: 1px solid #ddd; padding: 8px;">Unidad
+                                            </th>
+                                            <th scope="col" style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                Producto
+                                            </th>
+                                            <th scope="col" style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                Presentación</th>
+                                            <th scope="col" style="border-bottom: 1px solid #ddd; padding: 8px;">Raza
+                                            </th>
+                                            <th scope="col" style="border-bottom: 1px solid #ddd; padding: 8px;">Empaque
+                                            </th>
+                                            <th scope="col" style="border-bottom: 1px solid #ddd; padding: 8px;">Sexo
+                                            </th>
+                                            <th scope="col" style="border-bottom: 1px solid #ddd; padding: 8px;">Edad
+                                            </th>
+                                            <th scope="col" style="border-bottom: 1px solid #ddd; padding: 8px;">Valor
+                                                FOB
+                                            </th>
+                                        </tr>
+
+                                        <!-- Si no hay productos -->
+                                        <tr *ngIf="!certificado?.productos?.length">
+                                            <td colspan="9" style="padding: 8px; text-align: center;">
+                                                No hay productos asociados a este certificado.
+                                            </td>
+                                        </tr>
+
+                                        <!-- Si hay productos -->
+                                        <tr *ngFor="let producto of certificado?.productos">
+                                            <td style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                {{ producto.cantidad }}
+                                            </td>
+                                            <td style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                {{ producto.unidad }}
+                                            </td>
+                                            <td style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                {{ producto.producto }}
+                                            </td>
+                                            <td style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                {{ producto.presentacion }} -
+                                                <span *ngIf="producto.code_chip"
+                                                    style="color: blue; text-decoration: underline;">
+                                                    {{ producto.code_chip }}
+                                                </span>
+                                            </td>
+                                            <td style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                {{ producto.raza }}
+                                            </td>
+                                            <td style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                {{ producto.empaque }}
+                                            </td>
+                                            <td style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                {{ producto.sexo }}
+                                            </td>
+                                            <td style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                {{ producto.edad }}
+                                            </td>
+                                            <td style="border-bottom: 1px solid #ddd; padding: 8px;">
+                                                {{ producto.valor_fob ? (producto.valor_fob | number:'1.0-0') : 0 }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Info adicional -->
+                    <tr>
+                        <td>
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">PAIS DE DESTINO:</th>
+                                        <th scope="row" colspan="2">PROCEDENCIA</th>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ certificado?.pais_destino }}</td>
+                                        <td colspan="2">{{ certificado?.procedencia }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <th scope="row">RUTA DE VIAJE:</th>
+                                        <th scope="row" colspan="2">VIA:</th>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ certificado?.ruta_viaje }}</td>
+                                        <td colspan="2">{{ certificado?.via }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <th scope="row">IMPORTADOR:</th>
+                                        <th scope="row" colspan="2">DIRECCIÓN IMPORTADOR:</th>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ certificado?.importador }}</td>
+                                        <td colspan="2">{{ certificado?.direccion_importador }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <th scope="row">EXPORTADOR:</th>
+                                        <th scope="row" colspan="2">DIRECCIÓN EXPORTADOR:</th>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ certificado?.exportador }}</td>
+                                        <td colspan="2">{{ certificado?.direccion_exportador }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <th scope="row">DICTAMEN:</th>
+                                        <td colspan="2">{{ certificado?.dictamen }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <th scope="row" colspan="3">OBSERVACIONES:</th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3">{{ certificado?.observaciones }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Precautentena -->
+                    <tr>
+                        <td>
+                            <h5 class="text-center" style="font-size:14px !important;font-weight:bold;">
+                                UBICACIÓN DE LA PRECUARENTENA
+                            </h5>
+                            <table class="table">
+                                <tbody>
+                                    <tr style="text-align:center; font-weight:bold;">
+                                        <td>FECHA</td>
+                                        <td>NOMBRE PREDIO</td>
+                                        <td>MUNICIPIO</td>
+                                        <td>VEREDA</td>
+                                    </tr>
+                                    <tr style="text-align:center;">
+                                        <td>{{ certificado?.fecha_precuarentena }}</td>
+                                        <td>{{ certificado?.nombre_predio }}</td>
+                                        <td>{{ certificado?.municipio }}</td>
+                                        <td>{{ certificado?.vereda }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-
-        @if (isLoading) {
-            <div class="text-center">
-                <div class="spinner-border" role="status"></div>
-                <p class="mt-2">Cargando certificado...</p>
-            </div>
-        }
-
-        @if (mensaje) {
-            <div class="alert alert-danger">{{ mensaje }}</div>
-        }
-
-        <!-- SOLUCIÓN: Usar hasObjectProperties -->
-        @if (hasObjectProperties(certificado)) {
-            <!-- Encabezado -->
-            <img src="/img/fon_cabezoteimg.jpg" alt="Header" class="header-image">
-            <h5 class="text-center" style="font-size:15px;font-weight:bold;">
-                CERTIFICADO DE INSPECCIÓN SANITARIA<br>
-                PRODUCTOS DE ORIGEN ANIMAL Y BIOLÓGICOS
-            </h5>
-            
-            <!-- Información principal -->
-            <table class="table">
-                <tr>
-                    <th>PUERTO SALIDA:</th>
-                    <td>{{ certificado.puerto_salida || 'N/A' }}</td>
-                    <th>NÚMERO CIS:</th>
-                    <td>{{ certificado.Numero_Cis || 'N/A' }}</td>
-                </tr>
-                <tr>
-                    <th>PAÍS DESTINO:</th>
-                    <td>{{ certificado.pais_destino || 'N/A' }}</td>
-                    <th>PROCEDENCIA:</th>
-                    <td>{{ certificado.procedencia || 'N/A' }}</td>
-                </tr>
-            </table>
-
-            <!-- Productos -->
-            @if (productos && productos.length > 0) {
-                <h6 class="text-center"><strong>PRODUCTOS</strong></h6>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Cantidad</th>
-                            <th>Unidad</th>
-                            <th>Producto</th>
-                            <th>Presentación</th>
-                            <th>Raza</th>
-                            <th>Valor FOB</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (producto of productos; track $index) {
-                        <tr>
-                            <td>{{ producto.cantidad || 'N/A' }}</td>
-                            <td>{{ producto.unidad || 'N/A' }}</td>
-                            <td>{{ producto.producto || 'N/A' }}</td>
-                            <td>{{ producto.presentacion || 'N/A' }}</td>
-                            <td>{{ producto.raza || 'N/A' }}</td>
-                            <td>{{ formatNumber(producto.valor_fob) }}</td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            } @else {
-                <div class="alert alert-warning">No hay productos para mostrar</div>
-            }
-
-            <!-- Información adicional -->
-            <table class="table">
-                <tr>
-                    <th>IMPORTADOR:</th>
-                    <td colspan="3">{{ certificado.importador || 'N/A' }}</td>
-                </tr>
-                <tr>
-                    <th>EXPORTADOR:</th>
-                    <td colspan="3">{{ certificado.exportador || 'N/A' }}</td>
-                </tr>
-                <tr>
-                    <th>OBSERVACIONES:</th>
-                    <td colspan="3">{{ certificado.observaciones || 'N/A' }}</td>
-                </tr>
-            </table>
-
-        } @else if (resultado && !isLoading) {
-            <div class="alert alert-info">
-                Certificado encontrado pero sin datos para mostrar
-            </div>
-        }
     </div>
-</body>
-</html>
+</div>
